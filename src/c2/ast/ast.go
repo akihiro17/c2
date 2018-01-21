@@ -1,9 +1,9 @@
 package ast
 
 import (
+	"bytes"
 	"c2/token"
 	"io"
-	"bytes"
 )
 
 type Node interface {
@@ -36,7 +36,7 @@ func (p *Program) TokenLiteral() string {
 }
 
 func (p *Program) String() string {
-	return p.Func.String();
+	return p.Func.String()
 }
 
 func (p *Program) Compile(out io.Writer) {
@@ -45,9 +45,10 @@ func (p *Program) Compile(out io.Writer) {
 
 type SimpleFunction struct {
 	Token token.Token
-	Name *Identifier
+	Name  *Identifier
 	Value Statement
 }
+
 func (sf *SimpleFunction) functionNode() {}
 func (sf *SimpleFunction) TokenLiteral() string {
 	return sf.Token.Literal
@@ -115,10 +116,11 @@ func (i *IntegerLiteral) Compile(out io.Writer) {
 }
 
 type PrefixExpression struct {
-	Token token.Token
+	Token    token.Token
 	Operator string
-	Right Expression
+	Right    Expression
 }
+
 func (pe *PrefixExpression) expressionNode() {
 	return
 }
@@ -139,11 +141,12 @@ func (pe *PrefixExpression) Compile(out io.Writer) {
 }
 
 type InfixExpression struct {
-	Token token.Token
+	Token    token.Token
 	Operator string
-	Right Expression
-	Left Expression
+	Right    Expression
+	Left     Expression
 }
+
 func (pe *InfixExpression) expressionNode() {
 }
 func (pe *InfixExpression) TokenLiteral() string {

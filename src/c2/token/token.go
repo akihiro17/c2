@@ -3,13 +3,13 @@ package token
 type TokenType string
 
 type Token struct {
-	Type TokenType
+	Type    TokenType
 	Literal string
 }
 
 const (
 	ILLEGAL = "ILLEGALE"
-	EOF = "EOF"
+	EOF     = "EOF"
 
 	LBRACE = "{"
 	RBRACE = "{"
@@ -23,24 +23,24 @@ const (
 
 	RETURN = "return"
 
-	IDENT = "IDENT"
+	IDENT       = "IDENT"
 	INT_LITERAL = "INT_LITERAL"
 
 	BITWISE_COMPLEMENT = "~"
-	LOGICAL_NEGATION = "!"
+	LOGICAL_NEGATION   = "!"
 
-	PLUS = "+"
-	MINUS = "-"
+	PLUS     = "+"
+	MINUS    = "-"
 	ASTERISK = "*"
-	SLASH = "/"
-	GT = ">"
-	LT = "<"
-	EQ = "=="
-	NOT_EQ = "!="
+	SLASH    = "/"
+	GT       = ">"
+	LT       = "<"
+	EQ       = "=="
+	NOT_EQ   = "!="
 )
 
 var keywords = map[string]TokenType{
-	"int": INT,
+	"int":    INT,
 	"return": RETURN,
 }
 

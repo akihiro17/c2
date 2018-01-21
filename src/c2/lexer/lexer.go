@@ -1,14 +1,14 @@
-package lexer;
+package lexer
 
 import (
 	"c2/token"
 )
 
 type Lexer struct {
-	input string
-	position int
+	input        string
+	position     int
 	readPosition int
-	ch byte
+	ch           byte
 }
 
 func New(input string) *Lexer {
@@ -85,11 +85,11 @@ func (l *Lexer) NextToken() token.Token {
 		if isLetter(l.ch) {
 			tok.Literal = l.readIndentifier()
 			tok.Type = token.LookupIdent(tok.Literal)
-			return tok;
+			return tok
 		} else if isDigit(l.ch) {
 			tok.Literal = l.readNumber()
 			tok.Type = token.INT_LITERAL
-			return tok;
+			return tok
 		} else {
 			tok = newToken(token.ILLEGAL, l.ch)
 		}

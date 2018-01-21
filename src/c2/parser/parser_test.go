@@ -1,12 +1,12 @@
 package parser
 
 import (
-	"testing"
+	"bytes"
 	"c2/ast"
 	"c2/lexer"
 	"c2/token"
 	"fmt"
-	"bytes"
+	"testing"
 )
 
 func TestParser(t *testing.T) {
@@ -24,7 +24,7 @@ int main(){
 
 	simple, _ := program.Func.(*ast.SimpleFunction)
 	fmt.Println(simple.Name.Value)
-	ret, _:= simple.Value.(*ast.ReturnStatement)
+	ret, _ := simple.Value.(*ast.ReturnStatement)
 	fmt.Println(ret.Value)
 
 	if !testIntegerLiteral(t, ret.Value, "2") {
@@ -59,10 +59,10 @@ int main(){
 
 func TestParsePrefixExpression(t *testing.T) {
 	prefixTests := []struct {
-		input string
+		input    string
 		operator string
-		value string
-	} {
+		value    string
+	}{
 		{"!5", "!", "5"},
 		{"-15", "-", "15"},
 		{"~1", "~", "1"},
@@ -85,11 +85,11 @@ func TestParsePrefixExpression(t *testing.T) {
 
 func TestParseInfixExpression(t *testing.T) {
 	prefixTests := []struct {
-		input string
-		leftValue string
-		operator string
+		input      string
+		leftValue  string
+		operator   string
 		rightValue string
-	} {
+	}{
 		{"5 + 5;", "5", "+", "5"},
 		{"5 - 5;", "5", "-", "5"},
 		{"5 * 5;", "5", "*", "5"},
@@ -120,9 +120,9 @@ func TestParseInfixExpression(t *testing.T) {
 
 func TestOperatorPrecedence(t *testing.T) {
 	prefixTests := []struct {
-		input string
+		input    string
 		expected string
-	} {
+	}{
 		{
 			"-4 * 5",
 			"((-4) * 5)",

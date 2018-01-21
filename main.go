@@ -1,13 +1,13 @@
 package main
 
 import (
+	"bytes"
+	"c2/compiler"
+	_ "fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
-	"bytes"
-	"io/ioutil"
-	_"fmt"
 	"strings"
-	"c2/compiler"
 )
 
 func main() {
