@@ -1,9 +1,9 @@
 package parser
 
 import(
-	"../ast"
-	"../token"
-	"../lexer"
+	"c2/ast"
+	"c2/token"
+	"c2/lexer"
 	"strconv"
 	"fmt"
 )

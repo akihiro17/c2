@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	_"fmt"
 	"strings"
-	"./compiler"
+	"c2/compiler"
 )
 
 func main() {

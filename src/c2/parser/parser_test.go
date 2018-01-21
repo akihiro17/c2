@@ -2,9 +2,9 @@ package parser
 
 import (
 	"testing"
-	"../ast"
-	"../lexer"
-	"../token"
+	"c2/ast"
+	"c2/lexer"
+	"c2/token"
 	"fmt"
 	"bytes"
 )

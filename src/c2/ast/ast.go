@@ -1,7 +1,7 @@
 package ast
 
 import (
-	"../token"
+	"c2/token"
 	"io"
 	"bytes"
 )

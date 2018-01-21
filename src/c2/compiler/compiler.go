@@ -1,8 +1,8 @@
 package compiler
 
 import (
-	"../lexer"
-	"../parser"
+	"c2/lexer"
+	"c2/parser"
 	"io"
 )
 
