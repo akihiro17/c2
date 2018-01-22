@@ -91,10 +91,7 @@ func (r *ReturnStatement) String() string {
 	return r.Token.Literal + " " + r.Value.String() + ";"
 }
 func (sf *ReturnStatement) Compile(out io.Writer) {
-	out.Write([]byte("movl $"))
 	sf.Value.Compile(out)
-	out.Write([]byte(", %eax"))
-	out.Write([]byte("\n"))
 	out.Write([]byte("ret"))
 	out.Write([]byte("\n"))
 }
@@ -112,7 +109,8 @@ func (i *IntegerLiteral) String() string {
 	return i.Value
 }
 func (i *IntegerLiteral) Compile(out io.Writer) {
-	out.Write([]byte(i.Value))
+	out.Write([]byte("movl $" + i.Value + ", " + "%eax"))
+	out.Write([]byte("\n"))
 }
 
 type PrefixExpression struct {
@@ -138,6 +136,19 @@ func (pe *PrefixExpression) String() string {
 	return out.String()
 }
 func (pe *PrefixExpression) Compile(out io.Writer) {
+	pe.Right.Compile(out)
+	switch pe.Operator {
+	case "-":
+		out.Write([]byte("neg %eax"))
+	case "~":
+		out.Write([]byte("not %eax"))
+	case "!":
+		out.Write([]byte("cmpl $0, %eax\n"))
+		out.Write([]byte("movl $0, %eax\n"))
+		out.Write([]byte("sete %al"))
+	default:
+	}
+	out.Write([]byte("\n"))
 }
 
 type InfixExpression struct {
