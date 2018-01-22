@@ -175,4 +175,9 @@ func (pe *InfixExpression) String() string {
 	return out.String()
 }
 func (pe *InfixExpression) Compile(out io.Writer) {
+	pe.Left.Compile(out)
+	out.Write([]byte("pushq %rax\n"))
+	pe.Right.Compile(out)
+	out.Write([]byte("popq %rcx\n"))
+	out.Write([]byte("addq %rcx, %rax\n"))
 }
