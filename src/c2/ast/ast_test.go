@@ -18,8 +18,8 @@ func TestCompilePrefixLogical(t *testing.T) {
 	prefix.Compile(out)
 
 	expected := [3]string{
-		"movl $5, %eax",
-		"neg %eax",
+		"movq $5, %rax",
+		"neg %rax",
 		"",
 	}
 	for i, line := range strings.Split(out.String(), "\n") {
@@ -40,9 +40,9 @@ func TestCompilePrefixLogicalNegation(t *testing.T) {
 	prefix.Compile(out)
 
 	expected := [5]string{
-		"movl $5, %eax",
-		"cmpl $0, %eax",
-		"movl $0, %eax",
+		"movq $5, %rax",
+		"cmpq $0, %rax",
+		"movq $0, %rax",
 		"sete %al",
 		"",
 	}

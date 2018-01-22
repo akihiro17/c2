@@ -109,7 +109,7 @@ func (i *IntegerLiteral) String() string {
 	return i.Value
 }
 func (i *IntegerLiteral) Compile(out io.Writer) {
-	out.Write([]byte("movl $" + i.Value + ", " + "%eax"))
+	out.Write([]byte("movq $" + i.Value + ", " + "%rax"))
 	out.Write([]byte("\n"))
 }
 
@@ -139,12 +139,12 @@ func (pe *PrefixExpression) Compile(out io.Writer) {
 	pe.Right.Compile(out)
 	switch pe.Operator {
 	case "-":
-		out.Write([]byte("neg %eax"))
+		out.Write([]byte("neg %rax"))
 	case "~":
-		out.Write([]byte("not %eax"))
+		out.Write([]byte("not %rax"))
 	case "!":
-		out.Write([]byte("cmpl $0, %eax\n"))
-		out.Write([]byte("movl $0, %eax\n"))
+		out.Write([]byte("cmpq $0, %rax\n"))
+		out.Write([]byte("movq $0, %rax\n"))
 		out.Write([]byte("sete %al"))
 	default:
 	}
