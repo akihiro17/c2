@@ -147,6 +147,10 @@ func TestOperatorPrecedence(t *testing.T) {
 			"5 > 4 != 5 < 4",
 			"((5 > 4) != (5 < 4))",
 		},
+		{
+			"(1 + 2) * 3",
+			"((1 + 2) * 3)",
+		},
 	}
 
 	for _, tt := range prefixTests {
