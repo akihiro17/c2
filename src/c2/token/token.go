@@ -42,6 +42,8 @@ const (
 	LT_OR_EQ = "<="
 	GT       = ">"
 	GT_OR_EQ = ">="
+
+	ASSIGN = "="
 )
 
 var keywords = map[string]TokenType{

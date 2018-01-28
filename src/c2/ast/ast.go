@@ -3,6 +3,7 @@ package ast
 import (
 	"bytes"
 	"c2/token"
+	"fmt"
 	"io"
 )
 
@@ -36,6 +37,8 @@ func (p *Program) TokenLiteral() string {
 }
 
 func (p *Program) String() string {
+	fmt.Println("program string")
+	fmt.Println(p.Func)
 	return p.Func.String()
 }
 
@@ -44,9 +47,9 @@ func (p *Program) Compile(out io.Writer) {
 }
 
 type SimpleFunction struct {
-	Token token.Token
-	Name  *Identifier
-	Value Statement
+	Token      token.Token
+	Name       *Identifier
+	Statements []Statement
 }
 
 func (sf *SimpleFunction) functionNode() {}
@@ -54,13 +57,16 @@ func (sf *SimpleFunction) TokenLiteral() string {
 	return sf.Token.Literal
 }
 func (sf *SimpleFunction) String() string {
+	fmt.Println("simple func")
 	var out bytes.Buffer
 
 	out.WriteString(sf.Token.Literal + " ")
 	out.WriteString(sf.Name.Value)
 	out.WriteString("()")
 	out.WriteString("{")
-	out.WriteString(sf.Value.String())
+	for _, stmt := range sf.Statements {
+		out.WriteString(stmt.String())
+	}
 	out.WriteString("}")
 
 	return out.String()
@@ -70,7 +76,9 @@ func (sf *SimpleFunction) Compile(out io.Writer) {
 	out.Write([]byte("\n"))
 	out.Write([]byte(sf.Name.Value + ":"))
 	out.Write([]byte("\n"))
-	sf.Value.Compile(out)
+	for _, stmt := range sf.Statements {
+		stmt.Compile(out)
+	}
 }
 
 type Identifier struct {

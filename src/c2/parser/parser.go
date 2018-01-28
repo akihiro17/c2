@@ -116,12 +116,28 @@ func (p *Parser) peekError(t token.TokenType) {
 	p.errors = append(p.errors, msg)
 }
 
+func (p *Parser) curError(t token.TokenType) {
+	msg := fmt.Sprintf("expected next token to be %s, got %s instead",
+		t, p.curToken.Type)
+	p.errors = append(p.errors, msg)
+}
+
 func (p *Parser) expectPeek(t token.TokenType) bool {
 	if p.peekTokenIs(t) {
 		p.nextToken()
 		return true
 	} else {
 		p.peekError(t)
+		return false
+	}
+}
+
+func (p *Parser) expectCur(t token.TokenType) bool {
+	if p.curTokenIs(t) {
+		p.nextToken()
+		return true
+	} else {
+		p.curError(t)
 		return false
 	}
 }
@@ -164,9 +180,16 @@ func (p *Parser) ParseFunction() ast.Function {
 	}
 
 	p.nextToken()
-	sf.Value = p.ParseStatement()
 
-	if !p.expectPeek(token.RBRACE) {
+	for p.curToken.Type != token.RBRACE {
+		stmt := p.ParseStatement()
+		if stmt != nil {
+			sf.Statements = append(sf.Statements, stmt)
+		}
+	}
+
+	// TODO: invalid function
+	if !p.expectCur(token.RBRACE) {
 		return nil
 	}
 

@@ -19,12 +19,11 @@ int main(){
 	p := New(l)
 
 	program := p.ParserProgram()
-
 	fmt.Println(program.String())
 
 	simple, _ := program.Func.(*ast.SimpleFunction)
 	fmt.Println(simple.Name.Value)
-	ret, _ := simple.Value.(*ast.ReturnStatement)
+	ret, _ := simple.Statements[0].(*ast.ReturnStatement)
 	fmt.Println(ret.Value)
 
 	if !testIntegerLiteral(t, ret.Value, "2") {
