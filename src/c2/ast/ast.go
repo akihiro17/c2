@@ -175,9 +175,34 @@ func (pe *InfixExpression) String() string {
 	return out.String()
 }
 func (pe *InfixExpression) Compile(out io.Writer) {
-	pe.Left.Compile(out)
-	out.Write([]byte("pushq %rax\n"))
-	pe.Right.Compile(out)
-	out.Write([]byte("popq %rcx\n"))
-	out.Write([]byte("addq %rcx, %rax\n"))
+	switch pe.Operator {
+	case "+":
+		pe.Left.Compile(out)
+		out.Write([]byte("pushq %rax\n"))
+		pe.Right.Compile(out)
+		out.Write([]byte("popq %rcx\n"))
+		out.Write([]byte("addq %rcx, %rax\n"))
+	case "*":
+		pe.Left.Compile(out)
+		out.Write([]byte("pushq %rax\n"))
+		pe.Right.Compile(out)
+		out.Write([]byte("popq %rcx\n"))
+		out.Write([]byte("imulq %rcx\n"))
+	case "-":
+		pe.Left.Compile(out)
+		out.Write([]byte("pushq %rax\n"))
+		pe.Right.Compile(out)
+		out.Write([]byte("popq %rcx\n"))
+		out.Write([]byte("subq %rax, %rcx\n"))
+		out.Write([]byte("movq %rcx, %rax\n"))
+	case "/":
+		pe.Left.Compile(out)
+		out.Write([]byte("pushq %rax\n"))
+		pe.Right.Compile(out)
+		out.Write([]byte("movq %rax, %rcx\n"))
+		out.Write([]byte("popq %rax\n"))
+		out.Write([]byte("movq $0, %rdx\n"))
+		out.Write([]byte("idivq %rcx\n"))
+	default:
+	}
 }
