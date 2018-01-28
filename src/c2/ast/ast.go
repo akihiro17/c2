@@ -203,6 +203,82 @@ func (pe *InfixExpression) Compile(out io.Writer) {
 		out.Write([]byte("popq %rax\n"))
 		out.Write([]byte("movq $0, %rdx\n"))
 		out.Write([]byte("idivq %rcx\n"))
+	case ">":
+		pe.Left.Compile(out)
+		out.Write([]byte("pushq %rax\n"))
+		pe.Right.Compile(out)
+		out.Write([]byte("movq %rax, %rbx\n"))
+		out.Write([]byte("popq %rcx\n"))
+		out.Write([]byte("movq $0, %rax\n"))
+		out.Write([]byte("cmpq %rbx, %rcx\n"))
+		out.Write([]byte("setg %al\n"))
+	case ">=":
+		pe.Left.Compile(out)
+		out.Write([]byte("pushq %rax\n"))
+		pe.Right.Compile(out)
+		out.Write([]byte("movq %rax, %rbx\n"))
+		out.Write([]byte("popq %rcx\n"))
+		out.Write([]byte("movq $0, %rax\n"))
+		out.Write([]byte("cmpq %rbx, %rcx\n"))
+		out.Write([]byte("setge %al\n"))
+	case "<":
+		pe.Left.Compile(out)
+		out.Write([]byte("pushq %rax\n"))
+		pe.Right.Compile(out)
+		out.Write([]byte("movq %rax, %rbx\n"))
+		out.Write([]byte("popq %rcx\n"))
+		out.Write([]byte("movq $0, %rax\n"))
+		out.Write([]byte("cmpq %rbx, %rcx\n"))
+		out.Write([]byte("setl %al\n"))
+	case "<=":
+		pe.Left.Compile(out)
+		out.Write([]byte("pushq %rax\n"))
+		pe.Right.Compile(out)
+		out.Write([]byte("movq %rax, %rbx\n"))
+		out.Write([]byte("popq %rcx\n"))
+		out.Write([]byte("movq $0, %rax\n"))
+		out.Write([]byte("cmpq %rbx, %rcx\n"))
+		out.Write([]byte("setle %al\n"))
+	case "==":
+		pe.Left.Compile(out)
+		out.Write([]byte("pushq %rax\n"))
+		pe.Right.Compile(out)
+		out.Write([]byte("movq %rax, %rbx\n"))
+		out.Write([]byte("popq %rcx\n"))
+		out.Write([]byte("movq $0, %rax\n"))
+		out.Write([]byte("cmpq %rbx, %rcx\n"))
+		out.Write([]byte("sete %al\n"))
+	case "!=":
+		pe.Left.Compile(out)
+		out.Write([]byte("pushq %rax\n"))
+		pe.Right.Compile(out)
+		out.Write([]byte("movq %rax, %rbx\n"))
+		out.Write([]byte("popq %rcx\n"))
+		out.Write([]byte("movq $0, %rax\n"))
+		out.Write([]byte("cmpq %rbx, %rcx\n"))
+		out.Write([]byte("setne %al\n"))
+	case "||":
+		pe.Left.Compile(out)
+		out.Write([]byte("pushq %rax\n"))
+		pe.Right.Compile(out)
+		out.Write([]byte("popq %rcx\n"))
+		out.Write([]byte("orq %rcx, %rax\n"))
+		out.Write([]byte("movq $0, %rax\n"))
+		out.Write([]byte("setne %al\n"))
+	case "&&":
+		pe.Left.Compile(out)
+		out.Write([]byte("pushq %rax\n"))
+		pe.Right.Compile(out)
+		out.Write([]byte("popq %rcx\n"))
+		// set cl = 1 if e1 != 0
+		out.Write([]byte("cmpq $0, %rcx\n"))
+		out.Write([]byte("setne %cl\n"))
+		// set al = 1 if e1 != 0
+		out.Write([]byte("cmpq $0, %rax\n"))
+		out.Write([]byte("setne %al\n"))
+		// compute al & cl
+		// store it in al
+		out.Write([]byte("andb %cl, %al\n"))
 	default:
 	}
 }

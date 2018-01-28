@@ -33,10 +33,15 @@ const (
 	MINUS    = "-"
 	ASTERISK = "*"
 	SLASH    = "/"
-	GT       = ">"
-	LT       = "<"
+
+	AND      = "&&"
+	OR       = "||"
 	EQ       = "=="
 	NOT_EQ   = "!="
+	LT       = "<"
+	LT_OR_EQ = "<="
+	GT       = ">"
+	GT_OR_EQ = ">="
 )
 
 var keywords = map[string]TokenType{
