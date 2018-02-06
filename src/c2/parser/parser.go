@@ -197,16 +197,24 @@ func (p *Parser) ParseFunction() ast.Function {
 }
 
 func (p *Parser) ParseStatement() ast.Statement {
-	returnStatement := &ast.ReturnStatement{Token: p.curToken}
+	switch p.curToken.Type {
+	case token.RETURN:
+		returnStatement := &ast.ReturnStatement{Token: p.curToken}
 
-	p.nextToken()
-	returnStatement.Value = p.ParseExpression(LOWEST)
+		p.nextToken()
+		returnStatement.Value = p.ParseExpression(LOWEST)
 
-	if !p.expectPeek(token.SEMICOLOM) {
+		if !p.expectPeek(token.SEMICOLOM) {
+			return nil
+		} else {
+			p.nextToken()
+		}
+
+		return returnStatement
+	default:
 		return nil
-	}
 
-	return returnStatement
+	}
 }
 
 func (p *Parser) ParseExpression(precedence int) ast.Expression {
