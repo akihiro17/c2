@@ -180,6 +180,19 @@ func TestOperatorPrecedence(t *testing.T) {
 
 }
 
+func TestIntAssignment(t *testing.T) {
+	input := "int a = 2;"
+	l := lexer.New(input)
+	p := New(l)
+
+	stmt := p.ParseStatement()
+	intAssignmentStatement := stmt.(*ast.IntAssignmentStatement)
+	value := intAssignmentStatement.Value.(*ast.IntegerLiteral)
+	if value.Value != "2" {
+		t.Errorf("expected = %q, got = %q", 2, intAssignmentStatement.Value)
+	}
+}
+
 func testIntegerLiteral(t *testing.T, il ast.Expression, value string) bool {
 	integ, ok := il.(*ast.IntegerLiteral)
 	if !ok {

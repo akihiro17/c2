@@ -211,6 +211,20 @@ func (p *Parser) ParseStatement() ast.Statement {
 		}
 
 		return returnStatement
+	case token.INT:
+		intAssignmentStatement := &ast.IntAssignmentStatement{Token: p.curToken}
+		p.nextToken()
+
+		intAssignmentStatement.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+
+		if !p.expectPeek(token.ASSIGN) {
+			return nil
+		} else {
+			p.nextToken()
+			intAssignmentStatement.Value = p.ParseExpression(LOWEST)
+		}
+
+		return intAssignmentStatement
 	default:
 		return nil
 

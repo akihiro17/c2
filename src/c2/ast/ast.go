@@ -104,6 +104,22 @@ func (sf *ReturnStatement) Compile(out io.Writer) {
 	out.Write([]byte("\n"))
 }
 
+type IntAssignmentStatement struct {
+	Token token.Token
+	Name  *Identifier
+	Value Expression
+}
+
+func (r *IntAssignmentStatement) statementNode() {}
+func (r *IntAssignmentStatement) TokenLiteral() string {
+	return r.Token.Literal
+}
+func (r *IntAssignmentStatement) String() string {
+	return r.Token.Literal + " " + r.Value.String() + ";"
+}
+func (sf *IntAssignmentStatement) Compile(out io.Writer) {
+}
+
 type IntegerLiteral struct {
 	Token token.Token
 	Value string
