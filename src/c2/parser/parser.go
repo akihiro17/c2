@@ -221,12 +221,12 @@ func (p *Parser) ParseStatement() ast.Statement {
 		intAssignmentStatement.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 
 		if !p.expectPeek(token.ASSIGN) {
-			return nil
+			intAssignmentStatement.Value = nil
+			return intAssignmentStatement
 		} else {
 			p.nextToken()
 			intAssignmentStatement.Value = p.ParseExpression(LOWEST)
 		}
-
 		return intAssignmentStatement
 	default:
 		return nil

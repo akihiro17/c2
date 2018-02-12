@@ -193,6 +193,21 @@ func TestIntAssignment(t *testing.T) {
 	}
 }
 
+func TestIntAssignmentNoInitialization(t *testing.T) {
+	input := "int a;"
+	l := lexer.New(input)
+	p := New(l)
+
+	stmt := p.ParseStatement()
+	intAssignmentStatement := stmt.(*ast.IntAssignmentStatement)
+	if intAssignmentStatement.Name.Value != "a" {
+		t.Errorf("expected = %q, got = %q", "a", intAssignmentStatement.Name.Value)
+	}
+	if intAssignmentStatement.Value != nil {
+		t.Errorf("expected = %q, got = %q", nil, intAssignmentStatement.Value)
+	}
+}
+
 func TestAssignmentExpression(t *testing.T) {
 	assignmentTests := []struct {
 		input    string
