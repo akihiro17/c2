@@ -26,11 +26,13 @@ var precedences = map[token.TokenType]int{
 	token.MINUS:    SUM,
 	token.SLASH:    PRODUCT,
 	token.ASTERISK: PRODUCT,
+	token.ASSIGN:   ASSIGN,
 }
 
 const (
 	_ int = iota
 	LOWEST
+	ASSIGN
 	OR
 	AND
 	EQUALS
@@ -63,6 +65,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.BITWISE_COMPLEMENT, p.ParsePrefixExpression)
 	p.registerPrefix(token.LOGICAL_NEGATION, p.ParsePrefixExpression)
 	p.registerPrefix(token.LPAREN, p.ParseGroupedExpression)
+	p.registerPrefix(token.IDENT, p.ParseIdentifier)
 
 	// infix
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
@@ -78,7 +81,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.NOT_EQ, p.ParseInfixExpression)
 	p.registerInfix(token.AND, p.ParseInfixExpression)
 	p.registerInfix(token.OR, p.ParseInfixExpression)
-
+	p.registerInfix(token.ASSIGN, p.ParseInfixExpression)
 	return p
 }
 
@@ -285,6 +288,12 @@ func (p *Parser) ParseGroupedExpression() ast.Expression {
 	}
 
 	return exp
+}
+
+func (p *Parser) ParseIdentifier() ast.Expression {
+	identifier := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+
+	return identifier
 }
 
 func (p *Parser) ParseInfixExpression(left ast.Expression) ast.Expression {

@@ -193,6 +193,40 @@ func TestIntAssignment(t *testing.T) {
 	}
 }
 
+func TestAssignmentExpression(t *testing.T) {
+	assignmentTests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			"a = 2 + 2;",
+			"(a = (2 + 2))",
+		},
+		{
+			"a = 2 + 2 * 2;",
+			"(a = (2 + (2 * 2)))",
+		},
+		{
+			"a = -2;",
+			"(a = (-2))",
+		},
+		{
+			"a = 2 * (b = 2)",
+			"(a = (2 * (b = 2)))",
+		},
+	}
+
+	for _, tt := range assignmentTests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		stmt := p.ParseExpression(LOWEST)
+
+		if stmt.String() != tt.expected {
+			t.Errorf("expected = %q, got = %q", tt.expected, stmt.String())
+		}
+	}
+}
+
 func testIntegerLiteral(t *testing.T, il ast.Expression, value string) bool {
 	integ, ok := il.(*ast.IntegerLiteral)
 	if !ok {

@@ -86,6 +86,16 @@ type Identifier struct {
 	Value string
 }
 
+func (i *Identifier) expressionNode() {}
+func (i *Identifier) TokenLiteral() string {
+	return i.Token.Literal
+}
+func (i *Identifier) String() string {
+	return i.Value
+}
+func (i *Identifier) Compile(out io.Writer) {
+}
+
 type ReturnStatement struct {
 	Token token.Token
 	Value Expression
