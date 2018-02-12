@@ -3,9 +3,14 @@ package ast
 import (
 	"bytes"
 	"c2/token"
-	"fmt"
+	_"fmt"
 	"io"
 )
+
+// Variable Map
+var globalScope = map[string]int{}
+var stackIndex = 0
+
 
 type Node interface {
 	TokenLiteral() string
@@ -37,8 +42,6 @@ func (p *Program) TokenLiteral() string {
 }
 
 func (p *Program) String() string {
-	fmt.Println("program string")
-	fmt.Println(p.Func)
 	return p.Func.String()
 }
 
@@ -48,7 +51,7 @@ func (p *Program) Compile(out io.Writer) {
 
 type SimpleFunction struct {
 	Token      token.Token
-	Name       *Identifier
+	Name       *FunctionName
 	Statements []Statement
 }
 
@@ -57,7 +60,6 @@ func (sf *SimpleFunction) TokenLiteral() string {
 	return sf.Token.Literal
 }
 func (sf *SimpleFunction) String() string {
-	fmt.Println("simple func")
 	var out bytes.Buffer
 
 	out.WriteString(sf.Token.Literal + " ")
@@ -81,6 +83,11 @@ func (sf *SimpleFunction) Compile(out io.Writer) {
 	}
 }
 
+type FunctionName struct {
+	Token token.Token
+	Value string
+}
+
 type Identifier struct {
 	Token token.Token
 	Value string
@@ -94,6 +101,15 @@ func (i *Identifier) String() string {
 	return i.Value
 }
 func (i *Identifier) Compile(out io.Writer) {
+	offset , ok := globalScope[i.Value]
+	if ok {
+		out.Write([]byte("movq "))
+		out.Write([]byte{byte(offset)})
+		out.Write([]byte("(%rbp), %rax"))
+		out.Write([]byte("\n"))
+	} else {
+		// function name
+	}
 }
 
 type ReturnStatement struct {
@@ -127,7 +143,15 @@ func (r *IntAssignmentStatement) TokenLiteral() string {
 func (r *IntAssignmentStatement) String() string {
 	return r.Token.Literal + " " + r.Value.String() + ";"
 }
-func (sf *IntAssignmentStatement) Compile(out io.Writer) {
+func (s *IntAssignmentStatement) Compile(out io.Writer) {
+	_, ok := globalScope[s.Name.Value]
+	if ok {
+	} else {
+		s.Value.Compile(out)
+		out.Write([]byte("pushq %rax\n"))
+		globalScope[s.Name.Value] = stackIndex
+		stackIndex = stackIndex - 8
+	}
 }
 
 type IntegerLiteral struct {
@@ -313,6 +337,17 @@ func (pe *InfixExpression) Compile(out io.Writer) {
 		// compute al & cl
 		// store it in al
 		out.Write([]byte("andb %cl, %al\n"))
+	case "=":
+		pe.Right.Compile(out)
+		variable := pe.Left.(*Identifier)
+		offset, ok := globalScope[variable.Value]
+		if ok {
+			out.Write([]byte("movq %rax, "))
+			out.Write([]byte{byte(offset)})
+			out.Write([]byte("(%rbp)"))
+			out.Write([]byte("\n"))
+		}
 	default:
+
 	}
 }

@@ -170,7 +170,7 @@ func (p *Parser) ParseFunction() ast.Function {
 
 	p.nextToken()
 
-	sf.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+	sf.Name = &ast.FunctionName{Token: p.curToken, Value: p.curToken.Literal}
 
 	if !p.expectPeek(token.LPAREN) {
 		return nil
@@ -184,15 +184,16 @@ func (p *Parser) ParseFunction() ast.Function {
 
 	p.nextToken()
 
-	for p.curToken.Type != token.RBRACE {
+	for p.curToken.Type != token.EOF {
 		stmt := p.ParseStatement()
 		if stmt != nil {
 			sf.Statements = append(sf.Statements, stmt)
+			p.nextToken()
 		}
 	}
 
 	// TODO: invalid function
-	if !p.expectCur(token.RBRACE) {
+	if !p.expectCur(token.EOF) {
 		return nil
 	}
 
@@ -200,6 +201,7 @@ func (p *Parser) ParseFunction() ast.Function {
 }
 
 func (p *Parser) ParseStatement() ast.Statement {
+	fmt.Println(p.curToken)
 	switch p.curToken.Type {
 	case token.RETURN:
 		returnStatement := &ast.ReturnStatement{Token: p.curToken}
@@ -222,12 +224,19 @@ func (p *Parser) ParseStatement() ast.Statement {
 
 		if !p.expectPeek(token.ASSIGN) {
 			intAssignmentStatement.Value = nil
-			return intAssignmentStatement
 		} else {
 			p.nextToken()
 			intAssignmentStatement.Value = p.ParseExpression(LOWEST)
+			fmt.Println("int assignment right value")
 		}
+
+		if !p.expectPeek(token.SEMICOLOM) {
+			return nil
+		}
+
 		return intAssignmentStatement
+	case token.IDENT:
+		// identifier statementが必要
 	default:
 		return nil
 
@@ -235,13 +244,21 @@ func (p *Parser) ParseStatement() ast.Statement {
 }
 
 func (p *Parser) ParseExpression(precedence int) ast.Expression {
+	fmt.Println("start parse expression")
+	fmt.Println(p.curToken)
 	prefix := p.prefixParseFns[p.curToken.Type]
 	if prefix == nil {
 		return nil
 	}
+
+	fmt.Println("before prefix")
+	fmt.Println(p.curToken)
 	leftExp := prefix()
+	fmt.Println("after prefix")
+	fmt.Println(p.curToken)
 
 	for !p.peekTokenIs(token.SEMICOLOM) && precedence < p.peekPrecedence() {
+		fmt.Println("unexpected loop")
 		infix := p.infixParseFns[p.peekToken.Type]
 		if infix == nil {
 			return nil
@@ -292,6 +309,8 @@ func (p *Parser) ParseGroupedExpression() ast.Expression {
 
 func (p *Parser) ParseIdentifier() ast.Expression {
 	identifier := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+
+	p.nextToken()
 
 	return identifier
 }

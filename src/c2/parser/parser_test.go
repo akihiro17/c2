@@ -42,6 +42,8 @@ int main(){
 func TestCompile(t *testing.T) {
 	input := `
 int main(){
+  int a = 2;
+  a = 2;
   return 2;
 }
 `
@@ -104,6 +106,7 @@ func TestParseInfixExpression(t *testing.T) {
 	}
 
 	for _, tt := range prefixTests {
+		fmt.Println(tt.input)
 		l := lexer.New(tt.input)
 		p := New(l)
 		expression := p.ParseExpression(LOWEST)
