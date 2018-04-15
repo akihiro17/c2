@@ -86,6 +86,7 @@ func New(l *lexer.Lexer) *Parser {
 }
 
 func (p *Parser) peekPrecedence() int {
+	fmt.Println("peektoken:", p.peekToken)
 	if p, ok := precedences[p.peekToken.Type]; ok {
 		return p
 	}
@@ -209,14 +210,21 @@ func (p *Parser) ParseStatement() ast.Statement {
 		p.nextToken()
 		returnStatement.Value = p.ParseExpression(LOWEST)
 
+		// parseExpressionでセミコロンまで進む場合がある
+		if p.expectCur(token.SEMICOLOM) {
+			p.nextToken()
+			return returnStatement
+		}
+
 		if !p.expectPeek(token.SEMICOLOM) {
-			return nil
+			panic("semicolom")
 		} else {
 			p.nextToken()
 		}
 
 		return returnStatement
 	case token.INT:
+		fmt.Println("parse int")
 		intAssignmentStatement := &ast.IntAssignmentStatement{Token: p.curToken}
 		p.nextToken()
 
@@ -226,8 +234,9 @@ func (p *Parser) ParseStatement() ast.Statement {
 			intAssignmentStatement.Value = nil
 		} else {
 			p.nextToken()
+			fmt.Println("assign with value", p.curToken)
 			intAssignmentStatement.Value = p.ParseExpression(LOWEST)
-			fmt.Println("int assignment right value")
+			fmt.Println("int assignment right value", intAssignmentStatement.Value)
 		}
 
 		if !p.expectPeek(token.SEMICOLOM) {
@@ -235,10 +244,39 @@ func (p *Parser) ParseStatement() ast.Statement {
 		}
 
 		return intAssignmentStatement
-	case token.IDENT:
-		// identifier statementが必要
+	// case token.IDENT:
+	// 	fmt.Println("parse ident")
+	// 	// 予約語チェック
+	// 	if (p.curToken.Literal == "RETURN") {
+	// 		panic("return")
+	// 	}
+
+	// 	identifierStatement := &ast.IdentifierStatement{Token: token.Token{Type: token.INT, Literal: "INT"}}
+	// 	identifierStatement.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+
+	// 	if !p.expectPeek(token.ASSIGN) {
+	// 		panic("need assign")
+	// 	} else {
+	// 		p.nextToken()
+	// 		identifierStatement.Value = p.ParseExpression(LOWEST)
+	// 		fmt.Println("int assignment right value")
+	// 	}
+
+	// 	if !p.expectPeek(token.SEMICOLOM) {
+	// 		return nil
+	// 	}
+
+	// 	return identifierStatement
 	default:
-		return nil
+		exp := p.ParseExpression(LOWEST)
+
+		expStatement := &ast.ExpressionStatement{Value: exp, Token: p.curToken}
+
+		fmt.Println("exp:", exp)
+
+		return expStatement
+		// fmt.Println("not supported", p.curToken)
+		// panic("not supported")
 
 	}
 }
@@ -251,14 +289,12 @@ func (p *Parser) ParseExpression(precedence int) ast.Expression {
 		return nil
 	}
 
-	fmt.Println("before prefix")
-	fmt.Println(p.curToken)
+	fmt.Println("before prefix", p.curToken)
 	leftExp := prefix()
-	fmt.Println("after prefix")
-	fmt.Println(p.curToken)
+	fmt.Println("after prefix", p.curToken, "left:", leftExp)
 
+	fmt.Println(precedence, p.peekPrecedence())
 	for !p.peekTokenIs(token.SEMICOLOM) && precedence < p.peekPrecedence() {
-		fmt.Println("unexpected loop")
 		infix := p.infixParseFns[p.peekToken.Type]
 		if infix == nil {
 			return nil
@@ -266,6 +302,8 @@ func (p *Parser) ParseExpression(precedence int) ast.Expression {
 		p.nextToken()
 		leftExp = infix(leftExp)
 	}
+
+	fmt.Println("final left:", leftExp)
 
 	return leftExp
 }
@@ -310,7 +348,7 @@ func (p *Parser) ParseGroupedExpression() ast.Expression {
 func (p *Parser) ParseIdentifier() ast.Expression {
 	identifier := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 
-	p.nextToken()
+	// p.nextToken()
 
 	return identifier
 }
@@ -324,7 +362,11 @@ func (p *Parser) ParseInfixExpression(left ast.Expression) ast.Expression {
 
 	precedence := p.curPrecedence()
 	p.nextToken()
-	expression.Right = p.ParseExpression(precedence)
+	if expression.Operator == "=" {
+		expression.Right = p.ParseExpression(precedence - 1)
+	} else {
+		expression.Right = p.ParseExpression(precedence)
+	}
 
 	return expression
 }

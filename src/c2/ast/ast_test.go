@@ -82,7 +82,7 @@ func TestCompilePlusOperator(t *testing.T) {
 func TestIntAssignment(t *testing.T) {
 	assign := &IntAssignmentStatement{
 		Token: token.Token{Type: token.INT, Literal: "int"},
-		Name: &Identifier{Token: token.Token{Type: token.IDENT, Literal: "a"}, Value: "a"},
+		Name:  &Identifier{Token: token.Token{Type: token.IDENT, Literal: "a"}, Value: "a"},
 		Value: &IntegerLiteral{Token: token.Token{Type: token.INT_LITERAL, Literal: "5"}, Value: "5"},
 	}
 
@@ -97,7 +97,7 @@ func TestVariableAssignment(t *testing.T) {
 		Token:    token.Token{Type: token.PLUS, Literal: "="},
 		Operator: "=",
 		Right:    &IntegerLiteral{Token: token.Token{Type: token.INT_LITERAL, Literal: "5"}, Value: "5"},
-		Left: &Identifier{Token: token.Token{Type: token.IDENT, Literal: "a"}, Value: "a"},
+		Left:     &Identifier{Token: token.Token{Type: token.IDENT, Literal: "a"}, Value: "a"},
 	}
 	globalScope["a"] = 0
 

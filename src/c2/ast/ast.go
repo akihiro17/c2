@@ -3,14 +3,14 @@ package ast
 import (
 	"bytes"
 	"c2/token"
-	_"fmt"
+	"fmt"
 	"io"
+	"strconv"
 )
 
 // Variable Map
 var globalScope = map[string]int{}
 var stackIndex = 0
-
 
 type Node interface {
 	TokenLiteral() string
@@ -78,6 +78,11 @@ func (sf *SimpleFunction) Compile(out io.Writer) {
 	out.Write([]byte("\n"))
 	out.Write([]byte(sf.Name.Value + ":"))
 	out.Write([]byte("\n"))
+
+	// new stack frame
+	out.Write([]byte("pushq %rbp\n"))
+	out.Write([]byte("movq %rsp, %rbp\n"))
+
 	for _, stmt := range sf.Statements {
 		stmt.Compile(out)
 	}
@@ -101,10 +106,11 @@ func (i *Identifier) String() string {
 	return i.Value
 }
 func (i *Identifier) Compile(out io.Writer) {
-	offset , ok := globalScope[i.Value]
+	offset, ok := globalScope[i.Value]
+	fmt.Println("offset:", offset, []byte{byte(offset)})
 	if ok {
 		out.Write([]byte("movq "))
-		out.Write([]byte{byte(offset)})
+		out.Write([]byte(strconv.Itoa(offset)))
 		out.Write([]byte("(%rbp), %rax"))
 		out.Write([]byte("\n"))
 	} else {
@@ -126,6 +132,8 @@ func (r *ReturnStatement) String() string {
 }
 func (sf *ReturnStatement) Compile(out io.Writer) {
 	sf.Value.Compile(out)
+	out.Write([]byte("movq %rbp, %rsp\n"))
+	out.Write([]byte("popq %rbp\n"))
 	out.Write([]byte("ret"))
 	out.Write([]byte("\n"))
 }
@@ -147,10 +155,56 @@ func (s *IntAssignmentStatement) Compile(out io.Writer) {
 	_, ok := globalScope[s.Name.Value]
 	if ok {
 	} else {
-		s.Value.Compile(out)
+		if s.Value != nil {
+			s.Value.Compile(out)
+		}
 		out.Write([]byte("pushq %rax\n"))
-		globalScope[s.Name.Value] = stackIndex
+		globalScope[s.Name.Value] = stackIndex - 8
 		stackIndex = stackIndex - 8
+	}
+}
+
+type IdentifierStatement struct {
+	Token token.Token
+	Name  *Identifier
+	Value Expression
+}
+
+func (r *IdentifierStatement) statementNode() {}
+func (r *IdentifierStatement) TokenLiteral() string {
+	return r.Token.Literal
+}
+func (r *IdentifierStatement) String() string {
+	return r.Token.Literal + " " + r.Value.String() + ";"
+}
+func (s *IdentifierStatement) Compile(out io.Writer) {
+	offset, ok := globalScope[s.Name.Value]
+	if ok {
+		s.Value.Compile(out)
+		out.Write([]byte("movq %rax, "))
+		out.Write([]byte(strconv.Itoa(offset)))
+		out.Write([]byte("(%rbp)"))
+		out.Write([]byte("\n"))
+	} else {
+		panic("undefined variable")
+	}
+}
+
+type ExpressionStatement struct {
+	Token token.Token
+	Value Expression
+}
+
+func (r *ExpressionStatement) statementNode() {}
+func (r *ExpressionStatement) TokenLiteral() string {
+	return r.Token.Literal
+}
+func (r *ExpressionStatement) String() string {
+	return r.Token.Literal + " " + r.Value.String() + ";"
+}
+func (s *ExpressionStatement) Compile(out io.Writer) {
+	if s.Value != nil {
+		s.Value.Compile(out)
 	}
 }
 
@@ -232,7 +286,9 @@ func (pe *InfixExpression) String() string {
 
 	return out.String()
 }
+
 func (pe *InfixExpression) Compile(out io.Writer) {
+	fmt.Println("infix expression")
 	switch pe.Operator {
 	case "+":
 		pe.Left.Compile(out)
@@ -339,11 +395,14 @@ func (pe *InfixExpression) Compile(out io.Writer) {
 		out.Write([]byte("andb %cl, %al\n"))
 	case "=":
 		pe.Right.Compile(out)
+		fmt.Println("pe.right:", pe.Right)
+		fmt.Println("pe.left:", pe.Left)
 		variable := pe.Left.(*Identifier)
 		offset, ok := globalScope[variable.Value]
+		fmt.Println("offset assign:", offset)
 		if ok {
 			out.Write([]byte("movq %rax, "))
-			out.Write([]byte{byte(offset)})
+			out.Write([]byte(strconv.Itoa(offset)))
 			out.Write([]byte("(%rbp)"))
 			out.Write([]byte("\n"))
 		}

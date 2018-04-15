@@ -232,9 +232,14 @@ func TestAssignmentExpression(t *testing.T) {
 			"a = 2 * (b = 2)",
 			"(a = (2 * (b = 2)))",
 		},
+		{
+			"a = b = 2",
+			"(a = (b = 2))",
+		},
 	}
 
 	for _, tt := range assignmentTests {
+		fmt.Println("start:", tt.input)
 		l := lexer.New(tt.input)
 		p := New(l)
 		stmt := p.ParseExpression(LOWEST)
