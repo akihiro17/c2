@@ -23,6 +23,16 @@ type Function interface {
 	functionNode()
 }
 
+type Declaration interface {
+	Node
+	declarationNode()
+}
+
+type BlockItem interface {
+	Node
+	blockItemNode()
+}
+
 type Statement interface {
 	Node
 	statementNode()
@@ -52,7 +62,7 @@ func (p *Program) Compile(out io.Writer) {
 type SimpleFunction struct {
 	Token      token.Token
 	Name       *FunctionName
-	Statements []Statement
+	Statements []BlockItem
 }
 
 func (sf *SimpleFunction) functionNode() {}
@@ -118,6 +128,70 @@ func (i *Identifier) Compile(out io.Writer) {
 	}
 }
 
+type IntDeclarationNode struct {
+	Token token.Token
+	Name  *Identifier
+	Value Expression
+}
+
+func (r *IntDeclarationNode) declarationNode() {}
+func (r *IntDeclarationNode) TokenLiteral() string {
+	return r.Token.Literal
+}
+func (r *IntDeclarationNode) String() string {
+	return r.Token.Literal + " " + r.Value.String() + ";"
+}
+func (s *IntDeclarationNode) Compile(out io.Writer) {
+	_, ok := globalScope[s.Name.Value]
+	if ok {
+	} else {
+		if s.Value != nil {
+			s.Value.Compile(out)
+		}
+		out.Write([]byte("pushq %rax\n"))
+		globalScope[s.Name.Value] = stackIndex - 8
+		stackIndex = stackIndex - 8
+	}
+}
+
+type StatementBlockItem struct {
+	Token token.Token
+	Value Statement
+}
+
+func (b *StatementBlockItem) blockItemNode() {}
+func (b *StatementBlockItem) TokenLiteral() string {
+	return b.Token.Literal
+}
+
+func (b *StatementBlockItem) String() string {
+	return b.Value.String()
+}
+
+func (b *StatementBlockItem) Compile(out io.Writer) {
+	b.Value.Compile(out)
+}
+
+type DeclarationBlockItem struct {
+	Token token.Token
+	Value Declaration
+}
+
+func (b *DeclarationBlockItem) blockItemNode() {}
+func (b *DeclarationBlockItem) TokenLiteral() string {
+	return b.Token.Literal
+}
+
+func (b *DeclarationBlockItem) String() string {
+	return b.Value.String()
+}
+
+func (b *DeclarationBlockItem) Compile(out io.Writer) {
+	if b.Value != nil {
+		b.Value.Compile(out)
+	}
+}
+
 type ReturnStatement struct {
 	Token token.Token
 	Value Expression
@@ -136,58 +210,6 @@ func (sf *ReturnStatement) Compile(out io.Writer) {
 	out.Write([]byte("popq %rbp\n"))
 	out.Write([]byte("ret"))
 	out.Write([]byte("\n"))
-}
-
-type IntAssignmentStatement struct {
-	Token token.Token
-	Name  *Identifier
-	Value Expression
-}
-
-func (r *IntAssignmentStatement) statementNode() {}
-func (r *IntAssignmentStatement) TokenLiteral() string {
-	return r.Token.Literal
-}
-func (r *IntAssignmentStatement) String() string {
-	return r.Token.Literal + " " + r.Value.String() + ";"
-}
-func (s *IntAssignmentStatement) Compile(out io.Writer) {
-	_, ok := globalScope[s.Name.Value]
-	if ok {
-	} else {
-		if s.Value != nil {
-			s.Value.Compile(out)
-		}
-		out.Write([]byte("pushq %rax\n"))
-		globalScope[s.Name.Value] = stackIndex - 8
-		stackIndex = stackIndex - 8
-	}
-}
-
-type IdentifierStatement struct {
-	Token token.Token
-	Name  *Identifier
-	Value Expression
-}
-
-func (r *IdentifierStatement) statementNode() {}
-func (r *IdentifierStatement) TokenLiteral() string {
-	return r.Token.Literal
-}
-func (r *IdentifierStatement) String() string {
-	return r.Token.Literal + " " + r.Value.String() + ";"
-}
-func (s *IdentifierStatement) Compile(out io.Writer) {
-	offset, ok := globalScope[s.Name.Value]
-	if ok {
-		s.Value.Compile(out)
-		out.Write([]byte("movq %rax, "))
-		out.Write([]byte(strconv.Itoa(offset)))
-		out.Write([]byte("(%rbp)"))
-		out.Write([]byte("\n"))
-	} else {
-		panic("undefined variable")
-	}
 }
 
 type ExpressionStatement struct {

@@ -23,7 +23,8 @@ int main(){
 
 	simple, _ := program.Func.(*ast.SimpleFunction)
 	fmt.Println(simple.Name.Value)
-	ret, _ := simple.Statements[0].(*ast.ReturnStatement)
+	block, _ := simple.Statements[0].(*ast.StatementBlockItem)
+	ret, _ := block.Value.(*ast.ReturnStatement)
 	fmt.Println(ret.Value)
 
 	if !testIntegerLiteral(t, ret.Value, "2") {
@@ -188,8 +189,8 @@ func TestIntAssignment(t *testing.T) {
 	l := lexer.New(input)
 	p := New(l)
 
-	stmt := p.ParseStatement()
-	intAssignmentStatement := stmt.(*ast.IntAssignmentStatement)
+	stmt := p.ParseDeclaration()
+	intAssignmentStatement := stmt.(*ast.IntDeclarationNode)
 	value := intAssignmentStatement.Value.(*ast.IntegerLiteral)
 	if value.Value != "2" {
 		t.Errorf("expected = %q, got = %q", 2, intAssignmentStatement.Value)
@@ -201,8 +202,8 @@ func TestIntAssignmentNoInitialization(t *testing.T) {
 	l := lexer.New(input)
 	p := New(l)
 
-	stmt := p.ParseStatement()
-	intAssignmentStatement := stmt.(*ast.IntAssignmentStatement)
+	stmt := p.ParseDeclaration()
+	intAssignmentStatement := stmt.(*ast.IntDeclarationNode)
 	if intAssignmentStatement.Name.Value != "a" {
 		t.Errorf("expected = %q, got = %q", "a", intAssignmentStatement.Name.Value)
 	}

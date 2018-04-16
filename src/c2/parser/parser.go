@@ -186,7 +186,7 @@ func (p *Parser) ParseFunction() ast.Function {
 	p.nextToken()
 
 	for p.curToken.Type != token.EOF {
-		stmt := p.ParseStatement()
+		stmt := p.ParseBlockItem()
 		if stmt != nil {
 			sf.Statements = append(sf.Statements, stmt)
 			p.nextToken()
@@ -202,7 +202,7 @@ func (p *Parser) ParseFunction() ast.Function {
 }
 
 func (p *Parser) ParseStatement() ast.Statement {
-	fmt.Println(p.curToken)
+	fmt.Println("parser statement:", p.curToken)
 	switch p.curToken.Type {
 	case token.RETURN:
 		returnStatement := &ast.ReturnStatement{Token: p.curToken}
@@ -223,50 +223,6 @@ func (p *Parser) ParseStatement() ast.Statement {
 		}
 
 		return returnStatement
-	case token.INT:
-		fmt.Println("parse int")
-		intAssignmentStatement := &ast.IntAssignmentStatement{Token: p.curToken}
-		p.nextToken()
-
-		intAssignmentStatement.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
-
-		if !p.expectPeek(token.ASSIGN) {
-			intAssignmentStatement.Value = nil
-		} else {
-			p.nextToken()
-			fmt.Println("assign with value", p.curToken)
-			intAssignmentStatement.Value = p.ParseExpression(LOWEST)
-			fmt.Println("int assignment right value", intAssignmentStatement.Value)
-		}
-
-		if !p.expectPeek(token.SEMICOLOM) {
-			return nil
-		}
-
-		return intAssignmentStatement
-	// case token.IDENT:
-	// 	fmt.Println("parse ident")
-	// 	// 予約語チェック
-	// 	if (p.curToken.Literal == "RETURN") {
-	// 		panic("return")
-	// 	}
-
-	// 	identifierStatement := &ast.IdentifierStatement{Token: token.Token{Type: token.INT, Literal: "INT"}}
-	// 	identifierStatement.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
-
-	// 	if !p.expectPeek(token.ASSIGN) {
-	// 		panic("need assign")
-	// 	} else {
-	// 		p.nextToken()
-	// 		identifierStatement.Value = p.ParseExpression(LOWEST)
-	// 		fmt.Println("int assignment right value")
-	// 	}
-
-	// 	if !p.expectPeek(token.SEMICOLOM) {
-	// 		return nil
-	// 	}
-
-	// 	return identifierStatement
 	default:
 		exp := p.ParseExpression(LOWEST)
 
@@ -281,9 +237,48 @@ func (p *Parser) ParseStatement() ast.Statement {
 	}
 }
 
+func (p *Parser) ParseBlockItem() ast.BlockItem {
+	fmt.Println("parse block item: ", p.curToken)
+	switch p.curToken.Type {
+	case token.INT:
+		blockItem := &ast.DeclarationBlockItem{Token: p.curToken}
+		blockItem.Value = p.ParseDeclaration()
+
+		return blockItem
+	default:
+		statementBlock := &ast.StatementBlockItem{Token: p.curToken}
+		statementBlock.Value = p.ParseStatement()
+
+		return statementBlock
+
+	}
+}
+
+func (p *Parser) ParseDeclaration() ast.Declaration {
+	fmt.Println("parse declaration", p.curToken)
+	intDeclaration := &ast.IntDeclarationNode{Token: p.curToken}
+	p.nextToken()
+
+	intDeclaration.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+
+	if !p.expectPeek(token.ASSIGN) {
+		intDeclaration.Value = nil
+	} else {
+		p.nextToken()
+		fmt.Println("assign with value", p.curToken)
+		intDeclaration.Value = p.ParseExpression(LOWEST)
+		fmt.Println("int assignment right value", intDeclaration.Value)
+	}
+
+	if !p.expectPeek(token.SEMICOLOM) {
+		return nil
+	}
+
+	return intDeclaration
+}
+
 func (p *Parser) ParseExpression(precedence int) ast.Expression {
-	fmt.Println("start parse expression")
-	fmt.Println(p.curToken)
+	fmt.Println("start parse expression:", p.curToken)
 	prefix := p.prefixParseFns[p.curToken.Type]
 	if prefix == nil {
 		return nil
